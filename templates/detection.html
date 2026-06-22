@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Traffic Violation Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-slate-900 mb-2">AI Traffic Violation Detection</h1>
+            <p class="text-slate-600">Advanced YOLO-based vehicle detection with real-time violation monitoring</p>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+            <!-- Main Video Panel -->
+            <div class="xl:col-span-3 bg-white rounded-lg shadow-lg">
+                <div class="p-6 border-b">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-xl font-semibold flex items-center gap-2">
+                            <i class="fas fa-camera text-blue-600"></i>
+                            Live Detection Feed
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <span id="processing-badge" class="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+                                STOPPED
+                            </span>
+                            <span id="fps-badge" class="px-3 py-1 rounded-full text-sm font-medium border border-gray-300 text-gray-700">
+                                0 FPS
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="relative aspect-video bg-black rounded-lg overflow-hidden mb-4">
+                        <video id="video-element" class="absolute inset-0 w-full h-full object-contain"></video>
+                        <canvas id="canvas-element" class="absolute inset-0 w-full h-full object-contain"></canvas>
+                        <img id="processed-frame" class="absolute inset-0 w-full h-full object-contain">
+                        
+                        <div id="upload-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-white">
+                            <i class="fas fa-video text-6xl mb-4 opacity-50"></i>
+                            <p class="text-lg mb-2">Upload a traffic video to begin detection</p>
+                            <p class="text-sm opacity-75">Supports MP4, AVI, MOV formats</p>
+                        </div>
+
+                        <!-- Processing overlay -->
+                        <div id="processing-overlay" class="absolute top-4 left-4 bg-black bg-opacity-80 text-white px-3 py-2 rounded-lg" style="display: none;">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                                <span class="text-sm font-medium">LIVE DETECTION</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video Controls -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-4">
+                            <input type="file" accept="video/*" id="video-upload" class="hidden">
+                            <label for="video-upload" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-upload"></i>
+                                Upload Video
+                            </label>
+
+                            <button id="start-btn" class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors" disabled>
+                                <i class="fas fa-play"></i>
+                                Start Detection
+                            </button>
+
+                            <button id="stop-btn" class="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors" disabled>
+                                <i class="fas fa-pause"></i>
+                                Stop
+                            </button>
+                        </div>
+
+                        <!-- Video Progress -->
+                        <div id="video-progress" class="space-y-2" style="display: none;">
+                            <div class="flex justify-between text-sm text-slate-600">
+                                <span id="current-time">0:00</span>
+                                <span id="duration">0:00</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control Panel -->
+            <div class="space-y-6">
+                <!-- Statistics -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-blue-600"></i>
+                        Detection Statistics
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-3 bg-blue-50 rounded-lg">
+                                <div id="total-vehicles" class="text-2xl font-bold text-blue-600">0</div>
+                                <div class="text-sm text-blue-600">Vehicles</div>
+                            </div>
+                            <div class="text-center p-3 bg-green-50 rounded-lg">
+                                <div id="detection-accuracy" class="text-2xl font-bold text-green-600">0%</div>
+                                <div class="text-sm text-green-600">Accuracy</div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-exclamation-circle text-red-500"></i>
+                                    <span class="text-sm">Red Light Violations</span>
+                                </div>
+                                <span id="red-light-violations" class="px-2 py-1 bg-red-100 text-red-700 rounded text-sm font-medium">0</span>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-exclamation-circle text-orange-500"></i>
+                                    <span class="text-sm">Speeding Violations</span>
+                                </div>
+                                <span id="speeding-violations" class="px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm font-medium">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-cog text-blue-600"></i>
+                        Detection Settings
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium">Speed Threshold</label>
+                                <span id="speed-value" class="text-sm font-medium">50 km/h</span>
+                            </div>
+                            <input type="range" id="speed-threshold" min="20" max="120" step="5" value="50" class="w-full">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium">Vehicle Confidence</label>
+                                <span id="confidence-value" class="text-sm font-medium">70%</span>
+                            </div>
+                            <input type="range" id="vehicle-confidence" min="50" max="100" step="5" value="70" class="w-full">
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <label class="text-sm font-medium">Red Light Sensitivity</label>
+                                <span id="sensitivity-value" class="text-sm font-medium">80%</span>
+                            </div>
+                            <input type="range" id="red-light-sensitivity" min="50" max="100" step="5" value="80" class="w-full">
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <label class="text-sm font-medium">Traffic Lights</label>
+                            <input type="checkbox" id="show-traffic-lights" checked class="rounded">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Traffic Light Status -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Traffic Light Status</h3>
+                    <div id="traffic-lights-status" class="space-y-3">
+                        <!-- Traffic lights will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Violation Log -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold mb-4">Violation Log</h3>
+                    <div id="violation-log" class="h-48 overflow-y-auto text-xs space-y-1">
+                        <p class="text-slate-500 italic">No violations detected yet</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Violation Notifications -->
+    <div id="notifications-container" class="fixed top-4 right-4 z-50 space-y-2 max-w-md">
+        <!-- Notifications will be added here -->
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        
+        // DOM elements
+        const videoUpload = document.getElementById('video-upload');
+        const videoElement = document.getElementById('video-element');
+        const canvasElement = document.getElementById('canvas-element');
+        const processedFrame = document.getElementById('processed-frame');
+        const uploadPlaceholder = document.getElementById('upload-placeholder');
+        const processingOverlay = document.getElementById('processing-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const stopBtn = document.getElementById('stop-btn');
+        const processingBadge = document.getElementById('processing-badge');
+        const fpsBadge = document.getElementById('fps-badge');
+        
+        // Statistics elements
+        const totalVehicles = document.getElementById('total-vehicles');
+        const detectionAccuracy = document.getElementById('detection-accuracy');
+        const redLightViolations = document.getElementById('red-light-violations');
+        const speedingViolations = document.getElementById('speeding-violations');
+        
+        // Settings elements
+        const speedThreshold = document.getElementById('speed-threshold');
+        const speedValue = document.getElementById('speed-value');
+        const vehicleConfidence = document.getElementById('vehicle-confidence');
+        const confidenceValue = document.getElementById('confidence-value');
+        const redLightSensitivity = document.getElementById('red-light-sensitivity');
+        const sensitivityValue = document.getElementById('sensitivity-value');
+        const showTrafficLights = document.getElementById('show-traffic-lights');
+        
+        // Other elements
+        const trafficLightsStatus = document.getElementById('traffic-lights-status');
+        const violationLog = document.getElementById('violation-log');
+        const notificationsContainer = document.getElementById('notifications-container');
+        
+        // State
+        let isProcessing = false;
+        let videoFile = null;
+        let processingInterval = null;
+        
+        // Debug logging
+        function debugLog(message) {
+            console.log(`[DEBUG] ${message}`);
+        }
+        
+        // Event listeners
+        videoUpload.addEventListener('change', handleFileUpload);
+        startBtn.addEventListener('click', startProcessing);
+        stopBtn.addEventListener('click', stopProcessing);
+        
+        // Settings event listeners
+        speedThreshold.addEventListener('input', updateSettings);
+        vehicleConfidence.addEventListener('input', updateSettings);
+        redLightSensitivity.addEventListener('input', updateSettings);
+        showTrafficLights.addEventListener('change', updateSettings);
+        
+        // Update setting values display
+        speedThreshold.addEventListener('input', () => {
+            speedValue.textContent = speedThreshold.value + ' km/h';
+        });
+        vehicleConfidence.addEventListener('input', () => {
+            confidenceValue.textContent = vehicleConfidence.value + '%';
+        });
+        redLightSensitivity.addEventListener('input', () => {
+            sensitivityValue.textContent = redLightSensitivity.value + '%';
+        });
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                debugLog(`File selected: ${file.name}`);
+                videoFile = file;
+                const url = URL.createObjectURL(file);
+                videoElement.src = url;
+                videoElement.style.display = 'block';
+                uploadPlaceholder.style.display = 'none';
+                startBtn.disabled = false;
+                
+                videoElement.onloadedmetadata = () => {
+                    debugLog(`Video loaded: ${videoElement.videoWidth}x${videoElement.videoHeight}`);
+                    canvasElement.width = videoElement.videoWidth;
+                    canvasElement.height = videoElement.videoHeight;
+                };
+            }
+        }
+        
+        function startProcessing() {
+            if (!videoFile) return;
+            
+            debugLog('Starting processing');
+            isProcessing = true;
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            processingBadge.textContent = 'PROCESSING';
+            processingBadge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-700';
+            processingOverlay.style.display = 'block';
+            
+            // Make sure video is visible
+            videoElement.style.display = 'none';
+            processedFrame.style.display = 'block';
+            
+            // Start video playback
+            videoElement.play();
+            
+            // Notify server
+            socket.emit('start_processing');
+            
+            // Start frame processing
+            processingInterval = setInterval(processFrame, 100); // 10 FPS
+        }
+        
+        function stopProcessing() {
+            debugLog('Stopping processing');
+            isProcessing = false;
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            processingBadge.textContent = 'STOPPED';
+            processingBadge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700';
+            processingOverlay.style.display = 'none';
+            
+            videoElement.pause();
+            socket.emit('stop_processing');
+            
+            if (processingInterval) {
+                clearInterval(processingInterval);
+                processingInterval = null;
+            }
+        }
+        
+        function processFrame() {
+            if (!isProcessing || videoElement.paused || videoElement.ended) return;
+            
+            try {
+                const canvas = canvasElement;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw current video frame to canvas
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                
+                // Convert canvas to base64
+                const frameData = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Send frame to server for processing
+                debugLog('Sending frame to server');
+                socket.emit('process_frame', {
+                    frame: frameData,
+                    timestamp: videoElement.currentTime
+                });
+            } catch (error) {
+                console.error('Error processing frame:', error);
+            }
+        }
+        
+        function updateSettings() {
+            const settings = {
+                speedingThreshold: parseInt(speedThreshold.value),
+                vehicleConfidence: parseInt(vehicleConfidence.value),
+                redLightSensitivity: parseInt(redLightSensitivity.value),
+                showTrafficLights: showTrafficLights.checked
+            };
+            
+            debugLog('Updating settings: ' + JSON.stringify(settings));
+            
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(settings)
+            });
+        }
+        
+        function updateStatistics(stats) {
+            totalVehicles.textContent = stats.total_vehicles;
+            detectionAccuracy.textContent = stats.detection_accuracy + '%';
+            redLightViolations.textContent = stats.red_light_violations;
+            speedingViolations.textContent = stats.speeding_violations;
+            fpsBadge.textContent = stats.processing_fps + ' FPS';
+        }
+        
+        function updateTrafficLights(lights) {
+            trafficLightsStatus.innerHTML = '';
+            lights.forEach(light => {
+                const lightElement = document.createElement('div');
+                lightElement.className = 'flex items-center justify-between';
+                lightElement.innerHTML = `
+                    <span class="text-sm">Light ${light.id}</span>
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full ${getTrafficLightColor(light.state)}"></div>
+                        <span class="text-xs uppercase font-medium">${light.state}</span>
+                    </div>
+                `;
+                trafficLightsStatus.appendChild(lightElement);
+            });
+        }
+        
+        function getTrafficLightColor(state) {
+            switch(state) {
+                case 'red': return 'bg-red-500';
+                case 'yellow': return 'bg-yellow-500';
+                case 'green': return 'bg-green-500';
+                default: return 'bg-gray-400';
+            }
+        }
+        
+        function addNotification(notification) {
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `p-4 rounded-lg shadow-lg border-l-4 animate-pulse ${
+                notification.type === 'redLight' 
+                    ? 'bg-red-50 border-red-500 text-red-800' 
+                    : 'bg-orange-50 border-orange-500 text-orange-800'
+            }`;
+            
+            notificationElement.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1">
+                        <p class="font-semibold text-sm mb-1">
+                            ${notification.type === 'redLight' ? '🚨 RED LIGHT VIOLATION' : '⚡ SPEEDING VIOLATION'}
+                        </p>
+                        <p class="text-xs">${notification.message}</p>
+                        <p class="text-xs opacity-75 mt-1">${new Date().toLocaleTimeString()}</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-gray-400 hover:text-gray-600">
+                        ×
+                    </button>
+                </div>
+            `;
+            
+            notificationsContainer.appendChild(notificationElement);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (notificationElement.parentElement) {
+                    notificationElement.remove();
+                }
+            }, 5000);
+        }
+        
+        function updateViolationLog(violations) {
+            if (violations.length === 0) {
+                violationLog.innerHTML = '<p class="text-slate-500 italic">No violations detected yet</p>';
+                return;
+            }
+            
+            violationLog.innerHTML = '';
+            violations.slice(-10).reverse().forEach(violation => {
+                const logElement = document.createElement('div');
+                logElement.className = 'p-1 border-b border-slate-100';
+                logElement.textContent = violation;
+                violationLog.appendChild(logElement);
+            });
+        }
+        
+        // Socket.IO event handlers
+        socket.on('connect', () => {
+            debugLog('Connected to server');
+        });
+        
+        socket.on('disconnect', () => {
+            debugLog('Disconnected from server');
+            stopProcessing();
+        });
+        
+        socket.on('frame_processed', (data) => {
+            debugLog('Received processed frame');
+            
+            // Update processed frame
+            processedFrame.src = data.frame;
+            processedFrame.style.display = 'block';
+            
+            // Update statistics
+            updateStatistics(data.stats);
+            
+            // Update traffic lights
+            updateTrafficLights(data.traffic_lights);
+            
+            // Handle notifications
+            data.notifications.forEach(notification => {
+                addNotification(notification);
+            });
+        });
+        
+        socket.on('processing_started', () => {
+            debugLog('Processing started');
+        });
+        
+        socket.on('processing_stopped', () => {
+            debugLog('Processing stopped');
+        });
+        
+        socket.on('error', (data) => {
+            console.error('Error:', data.message);
+            alert('Error: ' + data.message);
+        });
+        
+        // Load initial violation log
+        fetch('/api/violations')
+            .then(response => response.json())
+            .then(data => {
+                updateViolationLog(data.violations);
+            })
+            .catch(error => {
+                console.error('Error loading violations:', error);
+            });
+            
+        // Debug message on page load
+        debugLog('Detection page loaded');
+    </script>
+</body>
+</html>

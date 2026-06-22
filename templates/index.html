@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Traffic Violation Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50">
+    <!-- Hero Section -->
+    <div class="container mx-auto px-6 py-16">
+        <div class="text-center mb-16">
+            <div class="mb-4 inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+                Powered by YOLO & Deep Learning
+            </div>
+            <h1 class="text-5xl font-bold text-slate-900 mb-6">
+                AI Traffic Violation
+                <span class="text-blue-600">Detection System</span>
+            </h1>
+            <p class="text-xl text-slate-600 max-w-3xl mx-auto mb-8">
+                Advanced computer vision system using YOLO object detection for real-time traffic monitoring, red light
+                violation detection, and speeding analysis with high accuracy and performance.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/detection" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-medium inline-flex items-center">
+                    <i class="fas fa-video mr-2"></i>
+                    Start Detection
+                </a>
+                <button class="border border-gray-300 hover:bg-gray-50 text-gray-700 px-8 py-3 rounded-lg font-medium inline-flex items-center">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    View Demo
+                </button>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Red Light Violation Detection</h3>
+                <p class="text-gray-600 mb-4">
+                    Advanced computer vision algorithms detect vehicles crossing intersections during red light signals
+                </p>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li>• Real-time traffic light state recognition</li>
+                    <li>• Precise stop line crossing detection</li>
+                    <li>• Multi-lane intersection monitoring</li>
+                    <li>• High accuracy violation alerts</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+                <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-bolt text-orange-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Speed Violation Detection</h3>
+                <p class="text-gray-600 mb-4">
+                    Frame-by-frame analysis using Deep SORT tracking to accurately measure vehicle speeds
+                </p>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li>• Multi-frame speed calculation</li>
+                    <li>• Configurable speed thresholds</li>
+                    <li>• Vehicle trajectory tracking</li>
+                    <li>• Real-time speed monitoring</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-car text-green-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">YOLO Vehicle Detection</h3>
+                <p class="text-gray-600 mb-4">
+                    State-of-the-art YOLO algorithm for accurate detection and classification of multiple vehicle types
+                </p>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li>• Cars, buses, trucks, motorcycles</li>
+                    <li>• High confidence detection</li>
+                    <li>• Real-time processing</li>
+                    <li>• Precise bounding boxes</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+                <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-shield-alt text-purple-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Advanced Tracking</h3>
+                <p class="text-gray-600 mb-4">Deep SORT algorithm for robust vehicle tracking across multiple frames</p>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li>• Multi-object tracking</li>
+                    <li>• Identity preservation</li>
+                    <li>• Occlusion handling</li>
+                    <li>• Trajectory analysis</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-chart-line text-blue-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Real-time Analytics</h3>
+                <p class="text-gray-600 mb-4">Comprehensive statistics and performance metrics for traffic monitoring</p>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li>• Live violation counting</li>
+                    <li>• Detection accuracy metrics</li>
+                    <li>• Processing FPS monitoring</li>
+                    <li>• Traffic flow analysis</li>
+                </ul>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow p-6">
+                <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                    <i class="fas fa-video text-indigo-600 text-xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Multi-format Support</h3>
+                <p class="text-gray-600 mb-4">Support for various video formats with optimized processing pipeline</p>
+                <ul class="space-y-2 text-sm text-slate-600">
+                    <li>• MP4, AVI, MOV formats</li>
+                    <li>• HD video processing</li>
+                    <li>• Batch processing</li>
+                    <li>• Export capabilities</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Technical Specifications -->
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Technical Specifications</h2>
+                <p class="text-gray-600">Built with cutting-edge computer vision technologies</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <h3 class="font-semibold text-lg mb-2">Object Detection</h3>
+                    <p class="text-slate-600 text-sm">YOLO (You Only Look Once) algorithm for real-time detection</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="font-semibold text-lg mb-2">Vehicle Tracking</h3>
+                    <p class="text-slate-600 text-sm">Deep SORT for robust multi-object tracking</p>
+                </div>
+                <div class="text-center">
+                    <h3 class="font-semibold text-lg mb-2">Performance</h3>
+                    <p class="text-slate-600 text-sm">Real-time processing with high accuracy detection</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
